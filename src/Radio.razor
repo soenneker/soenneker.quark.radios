@@ -1,4 +1,9 @@
+@using Soenneker.Quark.Validations
+@using Soenneker.Quark.Validations.Enums
+@using System.Linq.Expressions
+@using Soenneker.Extensions.String
 @inherits Soenneker.Quark.Components.Element
+@implements Soenneker.Quark.Validations.Abstract.IValidationInput
 
 <input type="radio" @attributes="BuildAttributes()" />
 
@@ -21,6 +26,27 @@
     [Parameter]
     public EventCallback<ChangeEventArgs> OnChange { get; set; }
 
+    [CascadingParameter]
+    public Validation? ParentValidation { get; set; }
+
+    [Parameter]
+    public Expression<Func<bool>>? CheckedExpression { get; set; }
+
+    public object? ValidationValue => Checked;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && ParentValidation is not null)
+        {
+            await ParentValidation.InitializeInput(this);
+
+            if (CheckedExpression is not null)
+                await ParentValidation.InitializeInputExpression(CheckedExpression);
+        }
+
+        await base.OnAfterRenderAsync(firstRender);
+    }
+
     private async Task HandleChange(ChangeEventArgs e)
     {
         Checked = true;
@@ -28,6 +54,9 @@
 
         if (OnChange.HasDelegate)
             await OnChange.InvokeAsync(e);
+
+        if (ParentValidation is not null)
+            await ParentValidation.NotifyInputChanged(Checked);
     }
 
     protected override Dictionary<string, object> BuildAttributes()
@@ -35,6 +64,10 @@
         Dictionary<string, object> attributes = base.BuildAttributes();
 
         var baseClasses = "form-check-input";
+        string? validationClass = GetValidationClass();
+
+        if (validationClass != null)
+            baseClasses = $"{baseClasses} {validationClass}";
 
         attributes["class"] = AppendToClass(attributes.GetValueOrDefault("class")
             ?.ToString(), baseClasses);
@@ -45,15 +78,26 @@
         if (Disabled)
             attributes["disabled"] = true;
 
-        if (!string.IsNullOrEmpty(Name))
+        if (Name.HasContent())
             attributes["name"] = Name;
 
-        if (!string.IsNullOrEmpty(Value))
+        if (Value.HasContent())
             attributes["value"] = Value;
 
         // Keep Checked in sync when the user changes selection
         attributes["onchange"] = EventCallback.Factory.Create<ChangeEventArgs>(this, HandleChange);
 
         return attributes;
+    }
+
+    private string? GetValidationClass()
+    {
+        if (ParentValidation?.Status == ValidationStatus.Error)
+            return "is-invalid";
+
+        if (ParentValidation?.Status == ValidationStatus.Success)
+	        return "is-valid";
+
+        return null;
     }
 }
