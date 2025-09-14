@@ -1,0 +1,59 @@
+@inherits Soenneker.Quark.Components.Element
+
+<input type="radio" @attributes="BuildAttributes()" />
+
+@code {
+    [Parameter]
+    public bool Checked { get; set; }
+
+    [Parameter]
+    public bool Disabled { get; set; }
+
+    [Parameter]
+    public string? Name { get; set; }
+
+    [Parameter]
+    public string? Value { get; set; }
+
+    [Parameter]
+    public EventCallback<bool> CheckedChanged { get; set; }
+
+    [Parameter]
+    public EventCallback<ChangeEventArgs> OnChange { get; set; }
+
+    private async Task HandleChange(ChangeEventArgs e)
+    {
+        Checked = true;
+        await CheckedChanged.InvokeAsync(Checked);
+
+        if (OnChange.HasDelegate)
+            await OnChange.InvokeAsync(e);
+    }
+
+    protected override Dictionary<string, object> BuildAttributes()
+    {
+        Dictionary<string, object> attributes = base.BuildAttributes();
+
+        var baseClasses = "form-check-input";
+
+        attributes["class"] = AppendToClass(attributes.GetValueOrDefault("class")
+            ?.ToString(), baseClasses);
+
+        if (Checked)
+            attributes["checked"] = true;
+
+        if (Disabled)
+            attributes["disabled"] = true;
+
+        if (!string.IsNullOrEmpty(Name))
+            attributes["name"] = Name;
+
+        if (!string.IsNullOrEmpty(Value))
+            attributes["value"] = Value;
+
+        // Keep Checked in sync when the user changes selection
+        attributes["onchange"] = EventCallback.Factory.Create<ChangeEventArgs>(this, HandleChange);
+
+        return attributes;
+    }
+}

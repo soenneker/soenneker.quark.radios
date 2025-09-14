@@ -1,0 +1,43 @@
+﻿@page "/"
+@using Microsoft.Extensions.Logging
+
+@inject ILogger<Index> Logger
+
+<img src="https://user-images.githubusercontent.com/4441470/224455560-91ed3ee7-f510-4041-a8d2-3fc093025112.png" />
+<h1>Soenneker.Quark.Radios demo</h1>
+<p>Minimal usage examples.</p>
+<br />
+
+<hr />
+
+<div class="container py-3">
+    <div class="form-check">
+        <Radio Name="group1" Value="Option1" Checked="@(_selected == @"Option1")" OnClick="@(() => Select(@"Option1"))" />
+        <label class="form-check-label">Option 1</label>
+    </div>
+    <div class="form-check">
+        <Radio Name="group1" Value="Option2" Checked="@(_selected == @"Option2")" OnClick="@(() => Select(@"Option2"))" />
+        <label class="form-check-label">Option 2</label>
+    </div>
+    <div class="form-check">
+        <Radio Name="group1" Value="Option3" Checked="@(_selected == @"Option3")" OnClick="@(() => Select(@"Option3"))" />
+        <label class="form-check-label">Option 3</label>
+    </div>
+
+    <div class="mt-3 text-muted">Selected: @_selected</div>
+</div>
+
+@code{
+
+    protected override void OnInitialized()
+    {
+    }
+
+    private string _selected = "Option2";
+    
+    private void Select(string value)
+    {
+        _selected = value;
+        StateHasChanged();
+    }
+}
