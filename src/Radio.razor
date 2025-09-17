@@ -1,6 +1,7 @@
 @using Soenneker.Quark.Validations
 @using Soenneker.Quark.Validations.Enums
 @using System.Linq.Expressions
+@using Soenneker.Blazor.Extensions.EventCallback
 @using Soenneker.Extensions.String
 @inherits Soenneker.Quark.Components.Element
 @implements Soenneker.Quark.Validations.Abstract.IValidationInput
@@ -8,6 +9,7 @@
 <input type="radio" @attributes="BuildAttributes()" />
 
 @code {
+
     [Parameter]
     public bool Checked { get; set; }
 
@@ -50,10 +52,9 @@
     private async Task HandleChange(ChangeEventArgs e)
     {
         Checked = true;
-        await CheckedChanged.InvokeAsync(Checked);
+        await CheckedChanged.InvokeIfHasDelegate(Checked);
 
-        if (OnChange.HasDelegate)
-            await OnChange.InvokeAsync(e);
+        await OnChange.InvokeIfHasDelegate(e);
 
         if (ParentValidation is not null)
             await ParentValidation.NotifyInputChanged(Checked);
@@ -95,8 +96,9 @@
             return "is-invalid";
 
         if (ParentValidation?.Status == ValidationStatus.Success)
-	        return "is-valid";
+            return "is-valid";
 
         return null;
     }
+
 }
