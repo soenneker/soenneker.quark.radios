@@ -1,23 +1,20 @@
-@using Soenneker.Quark.Validations
-@using Soenneker.Quark.Validations.Enums
 @using System.Linq.Expressions
 @using Soenneker.Blazor.Extensions.EventCallback
 @using Soenneker.Extensions.String
+
 @inherits Soenneker.Quark.Element
-@implements Soenneker.Quark.Validations.Abstract.IValidationInput
+@implements Soenneker.Quark.IValidationInput
 
 <input type="radio" @attributes="BuildAttributes()" />
 
 @code {
+	public override string? Name { get; set; } = "Radio";
 
     [Parameter]
     public bool Checked { get; set; }
 
     [Parameter]
     public bool Disabled { get; set; }
-
-    [Parameter]
-    public string? Name { get; set; }
 
     [Parameter]
     public string? Value { get; set; }
@@ -77,9 +74,6 @@
 
         if (Disabled)
             attributes["disabled"] = true;
-
-        if (Name.HasContent())
-            attributes["name"] = Name;
 
         if (Value.HasContent())
             attributes["value"] = Value;
